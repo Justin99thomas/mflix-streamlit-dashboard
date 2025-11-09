@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
+import re
+
+# Prevent Streamlit Cloud renderer issues
+plt.switch_backend("Agg")
 
 # ----------------------------------------------------
 # CONNECT TO AZURE COSMOS DB
@@ -51,11 +55,14 @@ pipeline = [
 df_genre = pd.DataFrame(list(db.movies.aggregate(pipeline)))
 df_genre.rename(columns={"_id": "Genre"}, inplace=True)
 
-plt.figure(figsize=(10,4))
-plt.bar(df_genre["Genre"], df_genre["count"])
-plt.xticks(rotation=90)
-plt.title("Movies Per Genre")
-st.pyplot(plt)
+# ✅ FIXED — Proper figure rendering
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.bar(df_genre["Genre"], df_genre["count"])
+ax.set_xticklabels(df_genre["Genre"], rotation=90)
+ax.set_title("Movies Per Genre")
+
+st.pyplot(fig)
+plt.close(fig)
 
 st.divider()
 
@@ -74,32 +81,32 @@ df_year = pd.DataFrame(list(db.movies.aggregate(pipeline)))
 df_year.rename(columns={"_id": "Year"}, inplace=True)
 
 # CLEAN YEAR VALUES
-import re
-
 def clean_year(y):
     y = str(y)
-    y = re.sub(r"[^0-9]", "", y)        # keep only digits
+    y = re.sub(r"[^0-9]", "", y)
     if y == "":
         return None
     y = int(y)
-    if 1880 <= y <= 2025:              # valid movie year range
+    if 1880 <= y <= 2025:
         return y
     return None
 
 df_year["Year"] = df_year["Year"].apply(clean_year)
 df_year = df_year.dropna(subset=["Year"])
-
-# SORT CLEANED VALUES
 df_year = df_year.sort_values("Year")
 
-# NOW SAFE TO PLOT
-plt.figure(figsize=(10,4))
-plt.plot(df_year["Year"], df_year["avgRating"])
-plt.xlabel("Year")
-plt.ylabel("Average Rating")
-plt.title("IMDb Rating Trend Over Time (Cleaned)")
-plt.grid(True)
-st.pyplot(plt)
+# ✅ FIXED — Proper figure rendering
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(df_year["Year"], df_year["avgRating"])
+ax.set_xlabel("Year")
+ax.set_ylabel("Average Rating")
+ax.set_title("IMDb Rating Trend Over Time (Cleaned)")
+ax.grid(True)
+
+st.pyplot(fig)
+plt.close(fig)
+
+st.divider()
 
 # ----------------------------------------------------
 # TOP-RATED MOVIES
