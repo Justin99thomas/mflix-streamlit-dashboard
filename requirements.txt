@@ -1,5 +1,5 @@
-streamlit==1.32.0
-pymongo==4.6.1
-pandas==2.2.1
-matplotlib==3.8.3
-dnspython==2.4.2
+streamlit
+pymongo
+pandas
+matplotlib
+dnspython
